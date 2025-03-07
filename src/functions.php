@@ -22,17 +22,24 @@ function getFFI(): ?FFI
         $os = php_uname('s');
         $arch = php_uname('m');
 
-        $ffi = FFI::cdef(
-            file_get_contents(__DIR__ . '/../lib/libsql.h'),
+        $headerPath = str_replace('/', DIRECTORY_SEPARATOR, __DIR__ . '/../lib/libsql.h');
+        $libPath = str_replace(
+            '/',
+            DIRECTORY_SEPARATOR,
             __DIR__ . match ([$os, $arch]) {
                 ["Darwin", "arm64"] => '/../lib/aarch64-apple-darwin/liblibsql.dylib',
                 ["Darwin", "x86_64"] => '/../lib/x86_64-apple-darwin/liblibsql.dylib',
                 ["Linux", "x86_64"] => '/../lib/x86_64-unknown-linux-gnu/liblibsql.so',
-                ["Linux", "arm64"] => '/../lib/aarch64-unknown-linux-gnu/liblibsql.so',
+                ["Linux", "arm64"],
                 ["Linux", "aarch64"] => '/../lib/aarch64-unknown-linux-gnu/liblibsql.so',
                 ["Windows NT", "AMD64"] => '/../lib/x86_64-pc-windows-gnu/libsql.dll',
                 default => die("Unsupported OS $os $arch"),
-            },
+            }
+        );
+
+        $ffi = FFI::cdef(
+            file_get_contents($headerPath),
+            $libPath
         );
     }
 
